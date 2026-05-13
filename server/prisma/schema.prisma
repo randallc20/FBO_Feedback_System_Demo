@@ -1,0 +1,258 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         String   // PILOT, FBO_STAFF, FBO_ADMIN, MGMT_COMPANY, SYSTEM_ADMIN
+  firstName    String
+  lastName     String
+  isActive     Boolean  @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  pilot         Pilot?
+  notifications Notification[]
+}
+
+model Pilot {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  initials            String
+  certificateNumber   String?
+  defaultTailId       String?
+  managementCompanyId String
+
+  user              User              @relation(fields: [userId], references: [id])
+  defaultAircraft   Aircraft?         @relation("DefaultAircraft", fields: [defaultTailId], references: [id])
+  managementCompany ManagementCompany @relation(fields: [managementCompanyId], references: [id])
+  fuelPurchases     FuelPurchase[]
+  feedbackResponses FeedbackResponse[]
+}
+
+model ManagementCompany {
+  id             String   @id @default(uuid())
+  name           String   @unique
+  primaryContact String
+  email          String
+  phone          String
+  city           String
+  state          String
+  createdAt      DateTime @default(now())
+
+  pilots   Pilot[]
+  aircraft Aircraft[]
+}
+
+model Aircraft {
+  id                  String   @id @default(uuid())
+  tailNumber          String   @unique
+  make                String
+  model               String
+  category            String   // LIGHT_JET, MIDSIZE_JET, SUPER_MIDSIZE, LARGE_CABIN, TURBOPROP, HELICOPTER
+  avgFuelBurnPerHour  Float?
+  managementCompanyId String
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+
+  managementCompany ManagementCompany @relation(fields: [managementCompanyId], references: [id])
+  defaultForPilots  Pilot[]           @relation("DefaultAircraft")
+  fuelPurchases     FuelPurchase[]
+  feedbackResponses FeedbackResponse[]
+}
+
+model Fbo {
+  id                  String   @id @default(uuid())
+  name                String
+  icaoCode            String   @unique
+  airportName         String
+  city                String
+  state               String
+  address             String?
+  phone               String?
+  email               String?
+  website             String?
+  fuelSupplier        String?
+  ownershipType       String?  // INDEPENDENT, CHAIN, PE_BACKED
+  chainName           String?
+  isFlightsheetPartner Boolean @default(false)
+  partnerSince        DateTime?
+  currentRetailPPG    Float?
+  lastPriceUpdate     DateTime?
+  agreementStatus     String   @default("PROSPECT") // PROSPECT, NEGOTIATING, SIGNED, DECLINED
+  latitude            Float?
+  longitude           Float?
+  createdAt           DateTime @default(now())
+
+  fuelPurchases     FuelPurchase[]
+  surveys           Survey[]
+  feedbackResponses FeedbackResponse[]
+  pricingTiers      PricingTier[]
+  priceHistory      PriceHistory[]
+  flightbridgeSyncs FlightbridgeSync[]
+}
+
+model FuelPurchase {
+  id               String   @id @default(uuid())
+  pilotId          String
+  aircraftId       String
+  fboId            String
+  date             DateTime
+  gallons          Float
+  pricePerGallon   Float    // Flightsheet price
+  retailPriceAtTime Float
+  totalAmount      Float
+  savingsAmount    Float
+  fuelType         String   @default("Jet-A")
+  receiptImageUrl  String?
+  receiptRawText   String?
+  extractedByAI    Boolean  @default(false)
+  confirmedByPilot Boolean  @default(false)
+  invoiceNumber    String?
+  createdAt        DateTime @default(now())
+
+  pilot            Pilot    @relation(fields: [pilotId], references: [id])
+  aircraft         Aircraft @relation(fields: [aircraftId], references: [id])
+  fbo              Fbo      @relation(fields: [fboId], references: [id])
+  feedbackResponse FeedbackResponse?
+}
+
+model Survey {
+  id        String   @id @default(uuid())
+  fboId     String
+  name      String
+  isLive    Boolean  @default(false)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fbo       Fbo              @relation(fields: [fboId], references: [id])
+  questions SurveyQuestion[]
+  responses FeedbackResponse[]
+}
+
+model SurveyQuestion {
+  id                 String  @id @default(uuid())
+  surveyId           String
+  metric             String  // TURN_PERFORMANCE, SERVICE_EXPERIENCE, COMMUNICATION, NPS, GENERAL
+  questionText       String
+  questionType       String  // STARS, YES_NO, SINGLE_SELECT, MULTI_SELECT, NPS_SCALE, FREE_TEXT, CONDITIONAL
+  options            String? // JSON array for select types
+  isRequired         Boolean @default(true)
+  isConditional      Boolean @default(false)
+  conditionQuestionId String?
+  conditionAnswer    String?
+  displayOrder       Int
+
+  survey            Survey          @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  conditionQuestion SurveyQuestion? @relation("ConditionalQuestion", fields: [conditionQuestionId], references: [id])
+  dependentQuestions SurveyQuestion[] @relation("ConditionalQuestion")
+  answers           SurveyAnswer[]
+}
+
+model FeedbackResponse {
+  id                    String    @id @default(uuid())
+  fuelPurchaseId        String    @unique
+  surveyId              String
+  pilotId               String
+  fboId                 String
+  aircraftId            String
+  submittedAt           DateTime  @default(now())
+  completionTimeSeconds Int?
+  turnScore             Float?
+  serviceScore          Float?
+  commScore             Float?
+  npsScore              Int?
+  wouldReturn           String?
+  departureStatus       String?
+  greetingReceived      String?
+  preArrivalContact     Boolean?
+  keptInformed          Boolean?
+  commentText           String?
+  photoUrl              String?
+  flagged               Boolean   @default(false)
+  flaggedAt             DateTime?
+  flagReason            String?
+  resolvedAt            DateTime?
+  resolvedBy            String?
+  resolutionNote        String?
+
+  fuelPurchase FuelPurchase   @relation(fields: [fuelPurchaseId], references: [id])
+  survey       Survey         @relation(fields: [surveyId], references: [id])
+  pilot        Pilot          @relation(fields: [pilotId], references: [id])
+  fbo          Fbo            @relation(fields: [fboId], references: [id])
+  aircraft     Aircraft       @relation(fields: [aircraftId], references: [id])
+  answers      SurveyAnswer[]
+}
+
+model SurveyAnswer {
+  id            String  @id @default(uuid())
+  responseId    String
+  questionId    String
+  answerText    String?
+  answerNumeric Float?
+  answerBoolean Boolean?
+  answerOptions String? // JSON
+
+  response FeedbackResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question SurveyQuestion   @relation(fields: [questionId], references: [id])
+}
+
+model FlightbridgeSync {
+  id              String   @id @default(uuid())
+  fboId           String
+  tailNumber      String
+  inboundEta      DateTime?
+  gallonsRequested Float?
+  serviceRequests String?  // JSON
+  syncedAt        DateTime @default(now())
+  status          String   @default("PENDING") // SUCCESS, FAILED, PENDING
+
+  fbo Fbo @relation(fields: [fboId], references: [id])
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // FLAG_CREATED, FLAG_RESOLVED, LOW_SCORE_ALERT, PRICE_CHANGE, SURVEY_SUBMITTED
+  message     String
+  relatedId   String?
+  relatedType String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model PricingTier {
+  id            String    @id @default(uuid())
+  fboId         String
+  tierName      String
+  minGallons    Float
+  maxGallons    Float
+  pricePerGallon Float
+  effectiveDate DateTime
+  expiryDate    DateTime?
+
+  fbo Fbo @relation(fields: [fboId], references: [id])
+}
+
+model PriceHistory {
+  id              String   @id @default(uuid())
+  fboId           String
+  retailPPG       Float
+  flightsheetPPG  Float
+  recordedAt      DateTime @default(now())
+  changeAmount    Float?
+  changePercent   Float?
+
+  fbo Fbo @relation(fields: [fboId], references: [id])
+}
