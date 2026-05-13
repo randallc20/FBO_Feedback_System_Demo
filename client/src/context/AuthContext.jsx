@@ -8,7 +8,7 @@ const AuthContext = createContext(null);
 
 const demoUsers = {
   pilot: { email: 'james.whitfield@harcoaviation.com', role: 'PILOT', pilotId: 'p-1' },
-  fbo: { email: 'admin@jetaviation.com', role: 'FBO', firstName: 'Derek', lastName: 'Sullivan', fboId: 'fbo-1' },
+  fbo: { email: 'admin@jetaviation.com', role: 'FBO', firstName: 'Stuart', lastName: 'Mitchell', fboId: 'fbo-1' },
 };
 
 export function AuthProvider({ children }) {

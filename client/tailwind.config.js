@@ -16,10 +16,18 @@ export default {
         danger: '#A32D2D',
         blue: '#378ADD',
         teal: '#1D9E75',
+        'score-green': 'var(--score-green)',
+        'score-amber': 'var(--score-amber)',
+        'score-red': 'var(--score-red)',
       },
       fontFamily: {
         heading: ['"Barlow Condensed"', 'sans-serif'],
         body: ['"DM Sans"', 'sans-serif'],
+      },
+      animation: {
+        'fade-in': 'fadeIn 200ms ease-out',
+        'slide-in-right': 'slideInRight 300ms ease-out',
+        'slide-in-up': 'slideInUp 300ms ease-out',
       },
     },
   },

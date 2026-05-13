@@ -3,19 +3,39 @@
 @tailwind utilities;
 
 :root {
+  --bg: #F4F6FC;
+  --surface: #FFFFFF;
+  --surface2: #EEF1F9;
+  --text: #1A1F2E;
+  --text-sub: #5A6478;
+  --text-muted: #8C96A8;
+  --border: #E2E7F0;
+  --border-strong: #C8D0E0;
+  --score-green: #1A6B3C;
+  --score-amber: #BA7517;
+  --score-red: #A32D2D;
+  --score-green-bg: #E8F5EE;
+  --score-amber-bg: #FAEEDA;
+  --score-red-bg: #FCEBEB;
   --navy: #0A1628;
   --gold: #C9A84C;
-  --light-bg: #F4F6FC;
-  --white-surface: #FFFFFF;
-  --dark-surface: #111E30;
-  --dark-bg: #0A1628;
-  --text-primary: #1A1F2E;
-  --text-secondary: #5A6478;
-  --success: #1A6B3C;
-  --warning: #BA7517;
-  --danger: #A32D2D;
-  --blue: #378ADD;
-  --teal: #1D9E75;
+}
+
+.dark {
+  --bg: #0A1628;
+  --surface: #111E30;
+  --surface2: #162438;
+  --text: #F0F2F7;
+  --text-sub: #8BA0B8;
+  --text-muted: #4D6278;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --score-green: #5DCAA5;
+  --score-amber: #EF9F27;
+  --score-red: #F09595;
+  --score-green-bg: rgba(29, 158, 117, 0.15);
+  --score-amber-bg: rgba(186, 117, 23, 0.15);
+  --score-red-bg: rgba(226, 75, 74, 0.15);
 }
 
 body {
@@ -23,6 +43,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -33,6 +56,12 @@ h1, h2, h3, h4, h5, h6,
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
 /* Slide animation for pilot flow steps */
 @keyframes slideIn {
@@ -60,7 +89,7 @@ h1, h2, h3, h4, h5, h6,
   animation: fadeIn 200ms ease-out;
 }
 
-/* Toast notification slide in */
+/* Slide in from right */
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(100%); }
   to { opacity: 1; transform: translateX(0); }
@@ -85,17 +114,12 @@ h1, h2, h3, h4, h5, h6,
   transition: color 200ms ease, background-color 200ms ease;
 }
 
-/* Custom scrollbar for dashboard */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+/* Slide in up for dashboard cards */
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #5A6478;
-  border-radius: 3px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #7A8498;
+
+.animate-slideInUp {
+  animation: slideInUp 300ms ease-out;
 }
