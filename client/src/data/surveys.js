@@ -1,15 +1,8 @@
-export const surveyQuestions = [
-  { id: 'q-1',  metric: 'TURN_PERFORMANCE',  questionText: 'Overall speed of fuel service',             questionType: 'STARS',         isRequired: true,  isLocked: true,  allowComment: true,  displayOrder: 1,  flaggedStars: [1, 2] },
-  { id: 'q-2',  metric: 'TURN_PERFORMANCE',  questionText: 'Was your aircraft fueled within the expected timeframe?', questionType: 'YES_NO',  isRequired: true,  isLocked: false, allowComment: false, displayOrder: 2,  flaggedOptions: ['No'] },
-  { id: 'q-3',  metric: 'TURN_PERFORMANCE',  questionText: 'Departure status',                         questionType: 'SINGLE_SELECT', isRequired: true,  isLocked: false, allowComment: false, displayOrder: 3,  options: ['On time', 'Minor delay', 'Significant delay'], flaggedOptions: ['Significant delay'] },
-  { id: 'q-4',  metric: 'SERVICE_EXPERIENCE', questionText: 'Overall service experience',               questionType: 'STARS',         isRequired: true,  isLocked: true,  allowComment: true,  displayOrder: 4,  flaggedStars: [1, 2] },
-  { id: 'q-5',  metric: 'SERVICE_EXPERIENCE', questionText: 'How were you greeted on arrival?',         questionType: 'SINGLE_SELECT', isRequired: true,  isLocked: false, allowComment: false, displayOrder: 5,  options: ['Red carpet service', 'Standard welcome', 'Minimal interaction', 'No greeting'], flaggedOptions: ['No greeting'] },
-  { id: 'q-6',  metric: 'SERVICE_EXPERIENCE', questionText: 'Did any issues arise during your visit?',  questionType: 'YES_NO',        isRequired: true,  isLocked: false, allowComment: false, displayOrder: 6,  flaggedOptions: ['Yes'] },
-  { id: 'q-7',  metric: 'SERVICE_EXPERIENCE', questionText: 'How well was the issue resolved?',         questionType: 'STARS',         isRequired: false, isLocked: false, allowComment: true,  displayOrder: 7,  isConditional: true, conditionQuestionId: 'q-6', conditionAnswer: 'Yes', flaggedStars: [1] },
-  { id: 'q-8',  metric: 'SERVICE_EXPERIENCE', questionText: 'Would you return to this FBO?',            questionType: 'SINGLE_SELECT', isRequired: true,  isLocked: true,  allowComment: false, displayOrder: 8,  options: ['Definitely', 'Probably', 'Unlikely'], flaggedOptions: ['Unlikely'] },
-  { id: 'q-9',  metric: 'COMMUNICATION',      questionText: 'Pre-arrival communication quality',        questionType: 'STARS',         isRequired: true,  isLocked: true,  allowComment: true,  displayOrder: 9,  flaggedStars: [1, 2] },
-  { id: 'q-10', metric: 'COMMUNICATION',      questionText: 'Did the FBO contact you before arrival?',  questionType: 'YES_NO',        isRequired: true,  isLocked: false, allowComment: false, displayOrder: 10, flaggedOptions: ['No'] },
-  { id: 'q-11', metric: 'COMMUNICATION',      questionText: 'Were you kept informed while on the ground?', questionType: 'YES_NO',     isRequired: true,  isLocked: false, allowComment: false, displayOrder: 11, flaggedOptions: ['No'] },
-  { id: 'q-12', metric: 'NPS',                questionText: 'How likely are you to return to this FBO?', questionType: 'NPS_SCALE',    isRequired: true,  isLocked: true,  allowComment: false, displayOrder: 12, flaggedNPS: [0, 1, 2, 3] },
-  { id: 'q-13', metric: 'GENERAL',            questionText: 'Any additional comments about your visit today?', questionType: 'LONG_TEXT', isRequired: false, isLocked: true, allowComment: false, displayOrder: 13 },
+export const ticketQuestions = [
+  { id: 'q-1', metric: 'TURN_PERFORMANCE',  questionText: 'How would you rate the speed and efficiency of your fuel service today?',              questionType: 'STARS', isRequired: true, isLocked: true, allowComment: false, displayOrder: 1, flaggedStars: [1, 2] },
+  { id: 'q-2', metric: 'SERVICE_EXPERIENCE', questionText: 'How would you rate the professionalism and attentiveness of the ground crew?',         questionType: 'STARS', isRequired: true, isLocked: true, allowComment: false, displayOrder: 2, flaggedStars: [1, 2] },
+  { id: 'q-3', metric: 'COMMUNICATION',      questionText: 'How would you rate the communication before and during your visit?',                   questionType: 'STARS', isRequired: true, isLocked: true, allowComment: false, displayOrder: 3, flaggedStars: [1, 2] },
 ];
+
+// Backward compat alias
+export const surveyQuestions = ticketQuestions;

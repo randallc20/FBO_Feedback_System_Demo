@@ -1,599 +1,192 @@
-import { useState, useRef } from 'react';
-import { surveyQuestions } from '../../data/surveys';
+import { useState } from 'react';
+import { ticketQuestions } from '../../data/surveys';
 import {
-  GripVertical, Lock, Unlock, Plus, Trash2, Edit3, Check, X,
-  ChevronDown, ChevronUp, Star, MessageSquare, ToggleLeft, ToggleRight,
-  AlertCircle, Eye,
+  Lock, Star, Eye, X, Smartphone, Tablet, Monitor, Settings,
 } from 'lucide-react';
 
-const QUESTION_TYPES = [
-  { value: 'STARS', label: 'Star Rating (1-5)' },
-  { value: 'YES_NO', label: 'Yes / No' },
-  { value: 'SINGLE_SELECT', label: 'Single Select' },
-  { value: 'NPS_SCALE', label: 'NPS Scale (0-10)' },
-  { value: 'LONG_TEXT', label: 'Long Text' },
-];
+const METRIC_LABELS = { TURN_PERFORMANCE: 'Turn Performance', SERVICE_EXPERIENCE: 'Service Experience', COMMUNICATION: 'Communication' };
+const starLabels = ['Poor', 'Below Average', 'Average', 'Good', 'Excellent'];
 
-const METRICS = [
-  { value: 'TURN_PERFORMANCE', label: 'Turn Performance' },
-  { value: 'SERVICE_EXPERIENCE', label: 'Service Experience' },
-  { value: 'COMMUNICATION', label: 'Communication' },
-  { value: 'NPS', label: 'NPS' },
-  { value: 'GENERAL', label: 'General' },
-];
-
-export default function SurveyBuilder() {
-  const [questions, setQuestions] = useState(() => surveyQuestions.map((q) => ({ ...q })));
-  const [editingId, setEditingId] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [dragIdx, setDragIdx] = useState(null);
-  const [dragOverIdx, setDragOverIdx] = useState(null);
-  const [previewAnswers, setPreviewAnswers] = useState({});
-
-  // Drag & drop handlers
-  const handleDragStart = (idx) => {
-    if (questions[idx].isLocked) return;
-    setDragIdx(idx);
-  };
-  const handleDragOver = (e, idx) => {
-    e.preventDefault();
-    setDragOverIdx(idx);
-  };
-  const handleDrop = (idx) => {
-    if (dragIdx === null || dragIdx === idx) { setDragIdx(null); setDragOverIdx(null); return; }
-    const updated = [...questions];
-    const [moved] = updated.splice(dragIdx, 1);
-    updated.splice(idx, 0, moved);
-    updated.forEach((q, i) => (q.displayOrder = i + 1));
-    setQuestions(updated);
-    setDragIdx(null);
-    setDragOverIdx(null);
-  };
-
-  const updateQuestion = (id, changes) => {
-    setQuestions((prev) => prev.map((q) => (q.id === id ? { ...q, ...changes } : q)));
-  };
-
-  const deleteQuestion = (id) => {
-    const q = questions.find((q) => q.id === id);
-    if (q?.isLocked) return;
-    setQuestions((prev) => {
-      const filtered = prev.filter((q) => q.id !== id);
-      filtered.forEach((q, i) => (q.displayOrder = i + 1));
-      return filtered;
-    });
-  };
-
-  const addQuestion = (newQ) => {
-    setQuestions((prev) => [...prev, { ...newQ, id: `q-${Date.now()}`, displayOrder: prev.length + 1 }]);
-    setShowAddForm(false);
-  };
-
-  // Active questions considering conditionals
-  const activePreviewQuestions = questions.filter((q) => {
-    if (q.isConditional && q.conditionQuestionId) {
-      return previewAnswers[q.conditionQuestionId] === (q.conditionAnswer || 'Yes');
-    }
-    return true;
-  });
+export default function OperationsConfig() {
+  const [previewMode, setPreviewMode] = useState(null);
 
   return (
-    <div className="flex gap-8">
-      {/* Left: Question List */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="font-heading text-lg font-bold uppercase tracking-wider" style={{ color: 'var(--text)' }}>
-              Survey Questions
-            </h3>
-            <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-              {questions.length} questions &middot; {questions.filter((q) => q.isLocked).length} locked
-            </p>
-          </div>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-gold text-navy font-heading font-bold text-sm rounded-lg hover:bg-yellow-500 transition"
-          >
-            <Plus className="w-4 h-4" /> Add Question
-          </button>
-        </div>
-
-        {/* Question cards */}
-        <div className="space-y-2">
-          {questions.map((q, idx) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              index={idx}
-              isEditing={editingId === q.id}
-              onEdit={() => setEditingId(editingId === q.id ? null : q.id)}
-              onUpdate={(changes) => updateQuestion(q.id, changes)}
-              onDelete={() => deleteQuestion(q.id)}
-              isDragOver={dragOverIdx === idx}
-              onDragStart={() => handleDragStart(idx)}
-              onDragOver={(e) => handleDragOver(e, idx)}
-              onDrop={() => handleDrop(idx)}
-              onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
-              allQuestions={questions}
-            />
-          ))}
-        </div>
-
-        {/* Add Question Form */}
-        {showAddForm && (
-          <AddQuestionForm
-            onAdd={addQuestion}
-            onCancel={() => setShowAddForm(false)}
-            existingQuestions={questions}
-          />
-        )}
-      </div>
-
-      {/* Right: Live Phone Preview */}
-      <div className="w-80 shrink-0 sticky top-4 self-start">
-        <div className="flex items-center gap-2 mb-4">
-          <Eye className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-          <h4 className="font-heading text-sm font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-            Live Preview
-          </h4>
-        </div>
-        <PhonePreview
-          questions={activePreviewQuestions}
-          answers={previewAnswers}
-          onAnswer={(id, val) => setPreviewAnswers((p) => ({ ...p, [id]: val }))}
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ─── Question Card ─── */
-function QuestionCard({ question: q, index, isEditing, onEdit, onUpdate, onDelete, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd, allQuestions }) {
-  const [editText, setEditText] = useState(q.questionText);
-  const [editType, setEditType] = useState(q.questionType);
-  const [editMetric, setEditMetric] = useState(q.metric);
-  const [editOptions, setEditOptions] = useState(q.options?.join(', ') || '');
-  const [editRequired, setEditRequired] = useState(q.isRequired);
-  const [editComment, setEditComment] = useState(q.allowComment);
-  const [editConditional, setEditConditional] = useState(q.isConditional || false);
-  const [editConditionQ, setEditConditionQ] = useState(q.conditionQuestionId || '');
-  const [editConditionA, setEditConditionA] = useState(q.conditionAnswer || 'Yes');
-
-  const saveEdit = () => {
-    const changes = {
-      questionText: editText,
-      questionType: editType,
-      metric: editMetric,
-      isRequired: editRequired,
-      allowComment: editComment,
-      isConditional: editConditional,
-      conditionQuestionId: editConditional ? editConditionQ : undefined,
-      conditionAnswer: editConditional ? editConditionA : undefined,
-    };
-    if (editType === 'SINGLE_SELECT') {
-      changes.options = editOptions.split(',').map((o) => o.trim()).filter(Boolean);
-    } else {
-      changes.options = undefined;
-    }
-    onUpdate(changes);
-    onEdit(); // close
-  };
-
-  return (
-    <div
-      draggable={!q.isLocked}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
-      className={`rounded-xl border transition ${isDragOver ? 'border-gold border-2' : ''} ${q.isLocked ? 'opacity-90' : 'cursor-grab'}`}
-      style={{ background: 'var(--surface)', borderColor: isDragOver ? undefined : 'var(--border)' }}
-    >
-      <div className="flex items-center gap-3 px-4 py-3">
-        {/* Drag handle */}
-        <div className={`shrink-0 ${q.isLocked ? 'opacity-30' : 'opacity-60 hover:opacity-100'}`}>
-          <GripVertical className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-        </div>
-
-        {/* Order number */}
-        <span className="font-heading text-xs font-bold w-6 text-center" style={{ color: 'var(--text-muted)' }}>
-          {index + 1}
-        </span>
-
-        {/* Question text */}
-        <div className="flex-1 min-w-0">
-          <p className="font-body text-sm truncate" style={{ color: 'var(--text)' }}>{q.questionText}</p>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="font-heading text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--surface2)', color: 'var(--text-muted)' }}>
-              {q.questionType.replace('_', ' ')}
-            </span>
-            <span className="font-heading text-[10px]" style={{ color: 'var(--text-muted)' }}>
-              {q.metric.replace('_', ' ')}
-            </span>
-            {q.isConditional && (
-              <span className="font-heading text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--score-amber-bg)', color: 'var(--score-amber)' }}>
-                Conditional
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Badges */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {q.allowComment && <MessageSquare className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />}
-          {q.isRequired && (
-            <span className="font-heading text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: 'var(--score-red-bg)', color: 'var(--score-red)' }}>
-              REQ
-            </span>
-          )}
-          {q.isLocked ? (
-            <Lock className="w-3.5 h-3.5" style={{ color: 'var(--score-amber)' }} />
-          ) : (
-            <>
-              <button onClick={onEdit} className="p-1 rounded hover:bg-[var(--surface2)] transition" style={{ color: 'var(--text-muted)' }}>
-                <Edit3 className="w-3.5 h-3.5" />
-              </button>
-              <button onClick={onDelete} className="p-1 rounded hover:bg-[var(--score-red-bg)] transition" style={{ color: 'var(--text-muted)' }}>
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Expanded edit form */}
-      {isEditing && !q.isLocked && (
-        <div className="px-4 pb-4 pt-1 border-t space-y-3" style={{ borderColor: 'var(--border)' }}>
-          <div>
-            <label className="block font-heading text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Question Text</label>
-            <input
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-              style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block font-heading text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Type</label>
-              <select
-                value={editType}
-                onChange={(e) => setEditType(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-                style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-              >
-                {QUESTION_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block font-heading text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Metric</label>
-              <select
-                value={editMetric}
-                onChange={(e) => setEditMetric(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-                style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-              >
-                {METRICS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-              </select>
-            </div>
-          </div>
-          {editType === 'SINGLE_SELECT' && (
-            <div>
-              <label className="block font-heading text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Options (comma separated)</label>
-              <input
-                value={editOptions}
-                onChange={(e) => setEditOptions(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-                style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-                placeholder="Option 1, Option 2, Option 3"
-              />
-            </div>
-          )}
-          <div className="flex items-center gap-5">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={editRequired} onChange={(e) => setEditRequired(e.target.checked)} className="accent-gold" />
-              <span className="font-body text-xs" style={{ color: 'var(--text-sub)' }}>Required</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={editComment} onChange={(e) => setEditComment(e.target.checked)} className="accent-gold" />
-              <span className="font-body text-xs" style={{ color: 'var(--text-sub)' }}>Allow Comment</span>
-            </label>
-          </div>
-          {/* Conditional logic */}
-          <div>
-            <label className="flex items-center gap-2 cursor-pointer mb-2">
-              <input type="checkbox" checked={editConditional} onChange={(e) => setEditConditional(e.target.checked)} className="accent-gold" />
-              <span className="font-body text-xs" style={{ color: 'var(--text-sub)' }}>Conditional (show based on another answer)</span>
-            </label>
-            {editConditional && (
-              <div className="grid grid-cols-2 gap-3 ml-5">
-                <select
-                  value={editConditionQ}
-                  onChange={(e) => setEditConditionQ(e.target.value)}
-                  className="px-3 py-2 rounded-lg font-body text-xs focus:outline-none focus:ring-1 focus:ring-gold"
-                  style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-                >
-                  <option value="">Select question...</option>
-                  {allQuestions.filter((oq) => oq.id !== q.id && oq.questionType === 'YES_NO').map((oq) => (
-                    <option key={oq.id} value={oq.id}>{oq.questionText}</option>
-                  ))}
-                </select>
-                <select
-                  value={editConditionA}
-                  onChange={(e) => setEditConditionA(e.target.value)}
-                  className="px-3 py-2 rounded-lg font-body text-xs focus:outline-none focus:ring-1 focus:ring-gold"
-                  style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-                >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end gap-2 pt-1">
-            <button onClick={onEdit} className="px-3 py-1.5 rounded-lg font-heading text-xs font-semibold hover:bg-[var(--surface2)] transition" style={{ color: 'var(--text-sub)' }}>
-              Cancel
-            </button>
-            <button onClick={saveEdit} className="px-4 py-1.5 rounded-lg font-heading text-xs font-bold bg-gold text-navy hover:bg-yellow-500 transition">
-              Save
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── Add Question Form ─── */
-function AddQuestionForm({ onAdd, onCancel, existingQuestions }) {
-  const [text, setText] = useState('');
-  const [type, setType] = useState('STARS');
-  const [metric, setMetric] = useState('GENERAL');
-  const [options, setOptions] = useState('');
-  const [required, setRequired] = useState(true);
-  const [allowComment, setAllowComment] = useState(false);
-
-  const handleAdd = () => {
-    if (!text.trim()) return;
-    const q = {
-      questionText: text.trim(),
-      questionType: type,
-      metric,
-      isRequired: required,
-      isLocked: false,
-      allowComment,
-    };
-    if (type === 'SINGLE_SELECT') {
-      q.options = options.split(',').map((o) => o.trim()).filter(Boolean);
-    }
-    onAdd(q);
-  };
-
-  return (
-    <div className="mt-4 rounded-xl border p-5 space-y-4 animate-fade-in" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <h4 className="font-heading text-sm font-bold" style={{ color: 'var(--text)' }}>New Question</h4>
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-full px-4 py-3 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-        style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-        placeholder="Enter question text..."
-        autoFocus
-      />
-      <div className="grid grid-cols-2 gap-3">
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <label className="block font-heading text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-            style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-          >
-            {QUESTION_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
+          <h3 className="font-heading text-lg font-bold uppercase tracking-wider" style={{ color: 'var(--text)' }}>
+            Operations Config
+          </h3>
+          <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            {ticketQuestions.length} ticket questions &middot; All locked (admin only)
+          </p>
         </div>
-        <div>
-          <label className="block font-heading text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>Metric</label>
-          <select value={metric} onChange={(e) => setMetric(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-            style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-          >
-            {METRICS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-          </select>
-        </div>
-      </div>
-      {type === 'SINGLE_SELECT' && (
-        <input
-          value={options}
-          onChange={(e) => setOptions(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg font-body text-sm focus:outline-none focus:ring-1 focus:ring-gold"
-          style={{ background: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
-          placeholder="Options (comma separated)"
-        />
-      )}
-      <div className="flex items-center gap-5">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} className="accent-gold" />
-          <span className="font-body text-xs" style={{ color: 'var(--text-sub)' }}>Required</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={allowComment} onChange={(e) => setAllowComment(e.target.checked)} className="accent-gold" />
-          <span className="font-body text-xs" style={{ color: 'var(--text-sub)' }}>Allow Comment</span>
-        </label>
-      </div>
-      <div className="flex justify-end gap-2">
-        <button onClick={onCancel} className="px-4 py-2 rounded-lg font-heading text-sm font-semibold hover:bg-[var(--surface2)] transition" style={{ color: 'var(--text-sub)' }}>
-          Cancel
-        </button>
-        <button onClick={handleAdd} disabled={!text.trim()} className="px-5 py-2 rounded-lg font-heading text-sm font-bold bg-gold text-navy hover:bg-yellow-500 transition disabled:opacity-40">
-          Add Question
+        <button
+          onClick={() => setPreviewMode('iphone')}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-heading font-semibold text-sm transition hover:bg-[var(--surface2)]"
+          style={{ color: 'var(--text-sub)', border: '1px solid var(--border)' }}
+        >
+          <Eye className="w-4 h-4" /> Preview Ticket
         </button>
       </div>
-    </div>
-  );
-}
 
-/* ─── Phone Preview ─── */
-function PhonePreview({ questions, answers, onAnswer }) {
-  const [previewStep, setPreviewStep] = useState(0);
-  const q = questions[previewStep];
-
-  return (
-    <div className="rounded-[2rem] border-4 border-gray-700 overflow-hidden shadow-2xl" style={{ background: '#0A1628' }}>
-      {/* Phone notch */}
-      <div className="flex justify-center pt-2 pb-1">
-        <div className="w-20 h-1 rounded-full bg-gray-700" />
+      {/* Info banner */}
+      <div className="rounded-xl p-4 mb-6 flex items-start gap-3" style={{ background: 'color-mix(in srgb, var(--score-amber) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--score-amber) 30%, transparent)' }}>
+        <Settings className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--score-amber)' }} />
+        <div>
+          <p className="font-heading text-sm font-semibold" style={{ color: 'var(--text)' }}>Fixed Ticket Format</p>
+          <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            Each pilot ticket includes 3 star-rating questions plus an optional callback request. These questions are standardized across all FBOs in the network and cannot be modified.
+          </p>
+        </div>
       </div>
 
-      {/* Screen */}
-      <div className="px-5 py-4 min-h-[480px] flex flex-col">
-        {/* Progress */}
-        <div className="h-1 bg-gray-700 rounded-full mb-6">
+      {/* Question table */}
+      <div className="rounded-xl border overflow-hidden" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="grid grid-cols-[40px_1fr_140px_60px] gap-0 px-4 py-2.5 border-b text-left" style={{ borderColor: 'var(--border)', background: 'var(--surface2)' }}>
+          <span className="font-heading text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>#</span>
+          <span className="font-heading text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Question</span>
+          <span className="font-heading text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Metric</span>
+          <span className="font-heading text-[10px] font-bold uppercase tracking-wider text-right" style={{ color: 'var(--text-muted)' }}>Status</span>
+        </div>
+
+        {ticketQuestions.map((q, idx) => (
           <div
-            className="h-full bg-gold rounded-full transition-all duration-300"
-            style={{ width: `${((previewStep + 1) / questions.length) * 100}%` }}
-          />
-        </div>
-
-        {q ? (
-          <>
-            <p className="font-heading text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">
-              Question {previewStep + 1} of {questions.length}
-            </p>
-            <p className="font-body text-sm text-white mb-6 leading-relaxed">
-              {q.questionText}
-              {q.isRequired && <span className="text-red-400 ml-1">*</span>}
-            </p>
-
-            {/* Input preview */}
-            <div className="flex-1">
-              <PreviewInput
-                question={q}
-                value={answers[q.id]}
-                onChange={(val) => onAnswer(q.id, val)}
-              />
+            key={q.id}
+            className="grid grid-cols-[40px_1fr_140px_60px] gap-0 px-4 py-4 items-center border-b hover:bg-[var(--surface2)] transition"
+            style={{ borderColor: 'var(--border)' }}
+          >
+            <span className="font-heading text-sm font-bold" style={{ color: 'var(--text-muted)' }}>{idx + 1}</span>
+            <div className="pr-4">
+              <p className="font-body text-sm" style={{ color: 'var(--text)' }}>{q.questionText}</p>
+              <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Star Rating (1-5) &middot; Required &middot; Flags at {q.flaggedStars.join(', ')} stars</p>
             </div>
-
-            {/* Nav */}
-            <div className="flex gap-2 mt-4">
-              {previewStep > 0 && (
-                <button
-                  onClick={() => setPreviewStep((s) => s - 1)}
-                  className="flex-1 py-2.5 rounded-lg border border-gray-600 text-gray-400 font-heading text-xs font-semibold"
-                >
-                  Back
-                </button>
-              )}
-              <button
-                onClick={() => setPreviewStep((s) => Math.min(questions.length - 1, s + 1))}
-                className="flex-1 py-2.5 rounded-lg bg-gold text-navy font-heading text-xs font-bold"
-              >
-                {previewStep === questions.length - 1 ? 'Submit' : 'Next'}
-              </button>
+            <span className="font-heading text-xs font-semibold" style={{ color: 'var(--text-sub)' }}>
+              {METRIC_LABELS[q.metric]}
+            </span>
+            <div className="flex justify-end">
+              <Lock className="w-4 h-4" style={{ color: 'var(--score-amber)' }} />
             </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="font-body text-sm text-gray-500">No questions to preview</p>
           </div>
-        )}
+        ))}
+
+        {/* Callback row */}
+        <div className="grid grid-cols-[40px_1fr_140px_60px] gap-0 px-4 py-4 items-center hover:bg-[var(--surface2)] transition">
+          <span className="font-heading text-sm font-bold" style={{ color: 'var(--text-muted)' }}>+</span>
+          <div className="pr-4">
+            <p className="font-body text-sm" style={{ color: 'var(--text)' }}>Request a callback</p>
+            <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Toggle &middot; Optional &middot; Triggers outreach workflow</p>
+          </div>
+          <span className="font-heading text-xs font-semibold" style={{ color: 'var(--text-sub)' }}>Callback</span>
+          <div className="flex justify-end">
+            <Lock className="w-4 h-4" style={{ color: 'var(--score-amber)' }} />
+          </div>
+        </div>
       </div>
 
-      {/* Home indicator */}
-      <div className="flex justify-center pb-2">
-        <div className="w-28 h-1 rounded-full bg-gray-600" />
-      </div>
+      {previewMode && <PreviewModal mode={previewMode} onModeChange={setPreviewMode} onClose={() => setPreviewMode(null)} />}
     </div>
   );
 }
 
-function PreviewInput({ question, value, onChange }) {
-  const { questionType, options } = question;
+/* Preview Modal — Shows the simplified ticket UI */
+const DEVICES = [
+  { key: 'iphone', label: 'iPhone', icon: Smartphone, width: 375, frame: 'rounded-[2.5rem] border-[6px]' },
+  { key: 'ipad', label: 'iPad', icon: Tablet, width: 768, frame: 'rounded-[1.5rem] border-[5px]' },
+  { key: 'desktop', label: 'Desktop', icon: Monitor, width: 1024, frame: 'rounded-xl border-[3px]' },
+];
 
-  if (questionType === 'STARS') {
-    const stars = value || 0;
-    return (
-      <div className="flex gap-2 justify-center">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <button key={s} onClick={() => onChange(s)} className="transition hover:scale-110">
-            <Star className={`w-8 h-8 ${s <= stars ? 'fill-gold text-gold' : 'text-gray-600'}`} />
+function PreviewModal({ mode, onModeChange, onClose }) {
+  const [scores, setScores] = useState({});
+  const [wantsCallback, setWantsCallback] = useState(false);
+  const device = DEVICES.find((d) => d.key === mode);
+
+  const allRated = ticketQuestions.every((q) => scores[q.id]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative flex flex-col items-center gap-4 animate-fade-in">
+        {/* Device switcher */}
+        <div className="flex items-center gap-1 rounded-xl p-1" style={{ background: 'rgba(255,255,255,0.1)' }}>
+          {DEVICES.map((d) => {
+            const Icon = d.icon;
+            return (
+              <button key={d.key} onClick={() => onModeChange(d.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-heading text-sm font-semibold transition ${
+                  mode === d.key ? 'bg-gold text-navy' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                <Icon className="w-4 h-4" /> {d.label}
+              </button>
+            );
+          })}
+          <button onClick={onClose} className="ml-2 p-2 text-gray-400 hover:text-white transition">
+            <X className="w-5 h-5" />
           </button>
-        ))}
-      </div>
-    );
-  }
+        </div>
 
-  if (questionType === 'YES_NO') {
-    return (
-      <div className="flex gap-3 justify-center">
-        {['Yes', 'No'].map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            className={`px-8 py-3 rounded-xl font-heading text-sm font-bold transition ${
-              value === opt ? 'bg-gold text-navy' : 'border border-gray-600 text-gray-400'
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    );
-  }
+        {/* Device frame */}
+        <div className={`${device.frame} border-gray-700 overflow-hidden shadow-2xl overflow-y-auto`}
+          style={{ width: Math.min(device.width, typeof window !== 'undefined' ? window.innerWidth - 48 : device.width), maxHeight: '80vh', background: '#0A1628' }}
+        >
+          {mode === 'iphone' && (
+            <div className="flex justify-center pt-3 pb-1"><div className="w-20 h-1 rounded-full bg-gray-700" /></div>
+          )}
 
-  if (questionType === 'SINGLE_SELECT' && options) {
-    return (
-      <div className="space-y-2">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            className={`w-full px-4 py-3 rounded-xl text-left font-body text-sm transition ${
-              value === opt ? 'bg-gold text-navy font-semibold' : 'border border-gray-600 text-gray-300'
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    );
-  }
+          <div className={`${mode === 'iphone' ? 'px-5 py-4' : mode === 'ipad' ? 'px-12 py-8' : 'px-16 py-10'}`}>
+            <h2 className={`font-heading font-bold text-white text-center mb-1 ${mode === 'desktop' ? 'text-2xl' : 'text-xl'}`}>Rate Your Experience</h2>
+            <p className="font-body text-xs text-gray-400 text-center mb-6">Tap stars to rate each area</p>
 
-  if (questionType === 'NPS_SCALE') {
-    return (
-      <div>
-        <div className="grid grid-cols-6 gap-1">
-          {Array.from({ length: 11 }, (_, i) => (
+            <div className="space-y-5">
+              {ticketQuestions.map((q) => {
+                const value = scores[q.id] || 0;
+                return (
+                  <div key={q.id} className="bg-[#111E30] rounded-2xl border border-gray-700/50 p-4">
+                    <p className="font-heading text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1">{METRIC_LABELS[q.metric]}</p>
+                    <p className="font-body text-xs text-gray-300 mb-3">{q.questionText}</p>
+                    <div className="flex items-center gap-2 justify-center">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button key={star} onClick={() => setScores((p) => ({ ...p, [q.id]: star }))} className="transition hover:scale-110">
+                          <Star className={`${mode === 'desktop' ? 'w-8 h-8' : 'w-7 h-7'} ${star <= value ? 'fill-[#C9A84C] text-[#C9A84C]' : 'text-gray-600'}`} />
+                        </button>
+                      ))}
+                      {value > 0 && <span className="font-heading text-[10px] text-[#C9A84C] ml-1">{starLabels[value - 1]}</span>}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Callback toggle */}
+              <button
+                onClick={() => setWantsCallback(!wantsCallback)}
+                className={`w-full flex items-center gap-3 rounded-2xl border p-3 transition ${wantsCallback ? 'bg-[#C9A84C]/10 border-[#C9A84C]/40' : 'bg-[#111E30] border-gray-700/50'}`}
+              >
+                <div className={`w-9 h-5 rounded-full transition flex items-center ${wantsCallback ? 'bg-[#C9A84C] justify-end' : 'bg-gray-600 justify-start'}`}>
+                  <div className="w-4 h-4 bg-white rounded-full mx-0.5 shadow" />
+                </div>
+                <div className="text-left">
+                  <p className="font-heading text-xs font-semibold text-white">Request a callback</p>
+                </div>
+              </button>
+            </div>
+
             <button
-              key={i}
-              onClick={() => onChange(i)}
-              className={`py-2 rounded font-heading text-xs font-bold transition ${
-                value === i
-                  ? i >= 9 ? 'bg-green-500 text-white' : i >= 7 ? 'bg-yellow-500 text-navy' : 'bg-red-500 text-white'
-                  : 'border border-gray-600 text-gray-400'
+              disabled={!allRated}
+              className={`mt-6 w-full py-4 font-heading font-bold rounded-xl transition ${
+                allRated ? 'bg-[#C9A84C] text-[#0A1628]' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {i}
+              Submit Ticket
             </button>
-          ))}
-        </div>
-        <div className="flex justify-between mt-2">
-          <span className="font-body text-[9px] text-gray-500">Not likely</span>
-          <span className="font-body text-[9px] text-gray-500">Very likely</span>
+          </div>
+
+          {mode === 'iphone' && (
+            <div className="flex justify-center pb-2"><div className="w-28 h-1 rounded-full bg-gray-600" /></div>
+          )}
         </div>
       </div>
-    );
-  }
-
-  if (questionType === 'LONG_TEXT') {
-    return (
-      <textarea
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        rows={4}
-        className="w-full px-4 py-3 rounded-xl bg-transparent border border-gray-600 text-white font-body text-sm resize-none focus:outline-none focus:border-gold"
-        placeholder="Type your response..."
-      />
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

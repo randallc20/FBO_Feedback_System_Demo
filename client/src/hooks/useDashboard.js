@@ -118,17 +118,19 @@ export function useDashboard(period = 'month', customRange = null) {
       total: nps30.length,
     };
 
-    // Would Return
-    const returnAnswers = effectiveResponses.filter((r) => r.wouldReturn);
-    const definitely = returnAnswers.filter((r) => r.wouldReturn === 'Definitely').length;
-    const probably = returnAnswers.filter((r) => r.wouldReturn === 'Probably').length;
-    const unlikely = returnAnswers.filter((r) => r.wouldReturn === 'Unlikely').length;
-    const wouldReturnRate = returnAnswers.length ? +((definitely / returnAnswers.length) * 100).toFixed(0) : 0;
-    const returnBreakdown = {
-      definitely: returnAnswers.length ? +((definitely / returnAnswers.length) * 100).toFixed(0) : 0,
-      probably: returnAnswers.length ? +((probably / returnAnswers.length) * 100).toFixed(0) : 0,
-      unlikely: returnAnswers.length ? +((unlikely / returnAnswers.length) * 100).toFixed(0) : 0,
-    };
+    // Ticket Response Time
+    const resolvedTickets = effectiveResponses.filter((r) => r.ticketResolvedAt);
+    const ticketResponseTimeAvg = resolvedTickets.length
+      ? +avg(resolvedTickets.map((r) => differenceInHours(new Date(r.ticketResolvedAt), new Date(r.ticketCreatedAt)))).toFixed(1)
+      : 0;
+    const prevResolvedTickets = prevResponses.filter((r) => r.ticketResolvedAt);
+    const prevTicketResponseTimeAvg = prevResolvedTickets.length
+      ? +avg(prevResolvedTickets.map((r) => differenceInHours(new Date(r.ticketResolvedAt), new Date(r.ticketCreatedAt)))).toFixed(1)
+      : 0;
+    const openTickets = effectiveResponses.filter((r) => !r.ticketResolvedAt).length;
+
+    // Callback requests
+    const callbackCount = effectiveResponses.filter((r) => r.wantsCallback).length;
 
     // Flags
     const allFlags = feedbackResponses.filter((r) => r.flagged);
@@ -259,8 +261,10 @@ export function useDashboard(period = 'month', customRange = null) {
       compositeChange: pctChange(compositeAvg, prevCompositeAvg),
       npsScore,
       npsBreakdown,
-      wouldReturnRate,
-      returnBreakdown,
+      ticketResponseTimeAvg,
+      ticketResponseTimeChange: pctChange(ticketResponseTimeAvg, prevTicketResponseTimeAvg),
+      openTickets,
+      callbackCount,
       openFlagCount: openFlags.length,
       oldestFlagAge: oldestOpen,
       resolvedThisMonth,

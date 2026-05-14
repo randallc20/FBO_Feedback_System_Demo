@@ -168,12 +168,9 @@ export function generateData() {
 
     const composite = +((turnScore + serviceScore + commScore) / 3).toFixed(1);
 
-    // Correlated answers
-    const wouldReturn = composite >= 4 ? 'Definitely' : composite >= 3 ? 'Probably' : 'Unlikely';
-    const departureStatus = turnScore >= 4 ? 'On time' : turnScore === 3 ? 'Minor delay' : 'Significant delay';
-    const greeting = serviceScore >= 5 ? 'Red carpet service' : serviceScore === 4 ? 'Standard welcome' : serviceScore === 3 ? 'Minimal interaction' : 'No greeting';
-    const preArrivalContact = commScore >= 3;
-    const keptInformed = commScore >= 4;
+    // Derive NPS from composite (no separate NPS question in ticket)
+    npsScore = Math.round((composite / 5) * 10 + (seededRandom() - 0.5) * 2);
+    npsScore = Math.max(0, Math.min(10, npsScore));
 
     // Comments on ~45% of responses
     let comment = null;
@@ -188,12 +185,23 @@ export function generateData() {
     if (serviceScore <= 2) flagReasons.push(`Service Experience: ${serviceScore} star${serviceScore > 1 ? 's' : ''}`);
     if (commScore <= 2) flagReasons.push(`Communication: ${commScore} star${commScore > 1 ? 's' : ''}`);
     if (npsScore <= 3) flagReasons.push(`NPS: ${npsScore}/10 (Detractor)`);
-    if (wouldReturn === 'Unlikely') flagReasons.push('Would Return: Unlikely');
+
+    // Callback request (~15% overall, higher when flagged)
+    const wantsCallback = isFlagged ? seededRandom() < 0.45 : seededRandom() < 0.15;
 
     const flaggedAt = isFlagged ? new Date(date.getTime() + randInt(1, 4) * 3600000).toISOString() : null;
     const submittedAt = new Date(date.getTime() + randInt(1, 24) * 3600000).toISOString();
 
-    // Resolution: resolve 8 of the flagged ones, leave 4 open
+    // Ticket timestamps for response time tracking
+    const ticketCreatedAt = submittedAt;
+    // ~80% of tickets resolved, 20% still open (especially recent ones)
+    const daysOld = (now.getTime() - date.getTime()) / dayMs;
+    const isResolved = daysOld > 7 ? seededRandom() < 0.9 : seededRandom() < 0.6;
+    const ticketResolvedAt = isResolved
+      ? new Date(new Date(ticketCreatedAt).getTime() + randInt(1, 72) * 3600000).toISOString()
+      : null;
+
+    // Resolution: resolve most flagged ones, leave some open
     let resolvedAt = null, resolvedBy = null, resolutionNote = null, pilotContacted = false, pilotContactMethod = null;
     if (isFlagged && seededRandom() < 0.67) {
       resolvedAt = new Date(new Date(flaggedAt).getTime() + randInt(2, 72) * 3600000).toISOString();
@@ -223,11 +231,9 @@ export function generateData() {
       commScore,
       composite,
       npsScore,
-      wouldReturn,
-      departureStatus,
-      greetingReceived: greeting,
-      preArrivalContact,
-      keptInformed,
+      wantsCallback,
+      ticketCreatedAt,
+      ticketResolvedAt,
       commentText: comment,
       gallons,
       flightsheetPPG: FBO.flightsheetPPG,

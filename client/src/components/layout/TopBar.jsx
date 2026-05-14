@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 
 const titles = {
   '/dashboard': 'Dashboard',
-  '/survey-builder': 'Survey Builder',
+  '/survey-builder': 'Operations Config',
   '/pilot': 'Pilot Preview',
 };
 

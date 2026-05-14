@@ -1,14 +1,25 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Sparkline from './Sparkline';
 
-export default function MetricCard({ title, value, unit, change, sparkData, sparkColor, badge, badgeTooltip, onClick, children, highlight }) {
+function trendLabel(change) {
+  if (change === null || change === undefined) return null;
+  if (change > 5) return { text: 'Getting Better', color: 'var(--score-green)' };
+  if (change < -5) return { text: 'Getting Worse', color: 'var(--score-red)' };
+  return { text: 'Stable', color: 'var(--score-amber)' };
+}
+
+export default function MetricCard({ title, value, unit, change, sparkData, sparkColor, badge, badgeTooltip, onClick, children, highlight, invertTrend }) {
+  // invertTrend: for metrics where lower is better (e.g. response time), flip the trend label logic
+  const effectiveChange = invertTrend && change !== null && change !== undefined ? -change : change;
+  const trend = trendLabel(effectiveChange);
+
   return (
     <div
       onClick={onClick}
       className={`rounded-xl p-5 border transition-colors relative group ${onClick ? 'cursor-pointer hover:border-gold/40' : ''}`}
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
     >
-      {/* Badge (survey count bubble) */}
+      {/* Badge (ticket count bubble) */}
       {badge !== undefined && (
         <div className="absolute top-3 right-3 group/badge">
           <div className="w-7 h-7 rounded-full bg-gold/10 flex items-center justify-center">
@@ -35,9 +46,16 @@ export default function MetricCard({ title, value, unit, change, sparkData, spar
       )}
 
       {change !== null && change !== undefined && (
-        <div className={`flex items-center gap-1 mt-2 text-xs font-heading font-semibold ${change >= 0 ? 'text-[var(--score-green)]' : 'text-[var(--score-red)]'}`}>
-          {change >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-          {change >= 0 ? '+' : ''}{change}% vs previous period
+        <div className="flex items-center gap-2 mt-2">
+          <div className={`flex items-center gap-1 text-xs font-heading font-semibold ${change >= 0 ? 'text-[var(--score-green)]' : 'text-[var(--score-red)]'}`}>
+            {change >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+            {change >= 0 ? '+' : ''}{change}%
+          </div>
+          {trend && (
+            <span className="font-heading text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ color: trend.color, background: `color-mix(in srgb, ${trend.color} 15%, transparent)` }}>
+              {trend.text}
+            </span>
+          )}
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flag, Clock, AlertTriangle, Mail, Phone, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flag, Clock, AlertTriangle, Mail, Phone, PhoneCall, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import ResolveModal from './ResolveModal';
 
@@ -145,10 +145,16 @@ function FlagCard({ flag, patterns, onResolve }) {
             background: flag.npsScore >= 9 ? 'var(--score-green-bg)' : flag.npsScore >= 7 ? 'var(--score-amber-bg)' : 'var(--score-red-bg)',
             color: flag.npsScore >= 9 ? 'var(--score-green)' : flag.npsScore >= 7 ? 'var(--score-amber)' : 'var(--score-red)',
           }}>NPS: {flag.npsScore}/10</span>
-          <span className="font-heading text-xs font-semibold px-2 py-1 rounded" style={{
-            background: flag.wouldReturn === 'Definitely' ? 'var(--score-green-bg)' : flag.wouldReturn === 'Probably' ? 'var(--score-amber-bg)' : 'var(--score-red-bg)',
-            color: flag.wouldReturn === 'Definitely' ? 'var(--score-green)' : flag.wouldReturn === 'Probably' ? 'var(--score-amber)' : 'var(--score-red)',
-          }}>{flag.wouldReturn}</span>
+          {flag.wantsCallback && (
+            <span className="font-heading text-xs font-semibold px-2 py-1 rounded flex items-center gap-1" style={{ background: 'rgba(55, 138, 221, 0.15)', color: '#378ADD' }}>
+              <PhoneCall className="w-3 h-3" /> Callback
+            </span>
+          )}
+          {flag.ticketCreatedAt && (
+            <span className="font-heading text-[10px] font-semibold px-2 py-1 rounded" style={{ color: 'var(--text-muted)', background: 'var(--surface2)' }}>
+              Ticket: {formatDistanceToNow(new Date(flag.ticketCreatedAt))} ago
+            </span>
+          )}
         </div>
 
         {/* Contact */}

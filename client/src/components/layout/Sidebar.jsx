@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, Smartphone, LogOut } from 'lucide-react';
+import { LayoutDashboard, Wrench, Smartphone, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/survey-builder', label: 'Survey Builder', icon: ListChecks },
+  { to: '/survey-builder', label: 'Operations Config', icon: Wrench },
   { to: '/pilot', label: 'Pilot Preview', icon: Smartphone },
 ];
 

@@ -15,8 +15,8 @@ export default function DashboardPage() {
   return (
     <>
       <PeriodSelector value={period} onChange={setPeriod} />
+      <SurveySection data={data} onOpenComments={() => setCommentsOpen(true)} onScrollToAlerts={() => document.getElementById('alerts-section')?.scrollIntoView({ behavior: 'smooth' })} />
       <FuelSection data={data} />
-      <SurveySection data={data} onOpenComments={() => setCommentsOpen(true)} />
       <ChartsSection data={data} />
       <AlertsSection data={data} />
 

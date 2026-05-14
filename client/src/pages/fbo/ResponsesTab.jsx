@@ -78,11 +78,7 @@ export default function ResponsesTab({ data, dark }) {
       'Service Score': r.serviceScore,
       'Comm Score': r.commScore,
       'NPS Score': r.npsScore,
-      'Would Return': r.wouldReturn,
-      Greeting: r.greetingReceived,
-      'Departure Status': r.departureStatus,
-      'Pre-Arrival Contact': r.preArrivalContact ? 'Yes' : 'No',
-      'Kept Informed': r.keptInformed ? 'Yes' : 'No',
+      'Callback Requested': r.wantsCallback ? 'Yes' : 'No',
       Flagged: r.flagged ? 'Yes' : 'No',
       Resolved: r.resolvedAt ? 'Yes' : 'No',
       Comment: r.commentText || '',
@@ -237,7 +233,7 @@ export default function ResponsesTab({ data, dark }) {
                             </div>
                           ))}
                           <p className={`font-body text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}><span className="font-semibold">NPS:</span> <span className={`font-heading font-bold ${r.npsScore >= 9 ? 'text-success' : r.npsScore >= 7 ? 'text-warning' : 'text-danger'}`}>{r.npsScore}/10</span></p>
-                          <p className={`font-body text-sm ${dark ? 'text-gray-300' : 'text-gray-600'}`}><span className="font-semibold">Would Return:</span> {r.wouldReturn}</p>
+                          {r.wantsCallback && <p className="font-body text-sm text-blue"><span className="font-semibold">Callback Requested</span></p>}
                         </div>
                         {/* Right */}
                         <div className="space-y-2">
@@ -293,7 +289,7 @@ export default function ResponsesTab({ data, dark }) {
               <div className={`mt-3 pt-3 border-t space-y-1 ${dark ? 'border-gray-700' : 'border-gray-100'}`}>
                 <p className={`font-body text-xs ${dark ? 'text-gray-300' : 'text-gray-600'}`}>Company: {r.companyName}</p>
                 <p className={`font-body text-xs ${dark ? 'text-gray-300' : 'text-gray-600'}`}>Gallons: {r.gallons} &middot; Savings: ${r.savingsAmount.toFixed(2)}</p>
-                <p className={`font-body text-xs ${dark ? 'text-gray-300' : 'text-gray-600'}`}>NPS: {r.npsScore} &middot; Return: {r.wouldReturn}</p>
+                <p className={`font-body text-xs ${dark ? 'text-gray-300' : 'text-gray-600'}`}>NPS: {r.npsScore}{r.wantsCallback ? ' · Callback requested' : ''}</p>
                 {r.commentText && <p className={`font-body text-xs italic mt-2 ${dark ? 'text-gray-400' : 'text-gray-500'}`}>"{r.commentText}"</p>}
               </div>
             )}

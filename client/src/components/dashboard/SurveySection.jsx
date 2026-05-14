@@ -1,5 +1,5 @@
-import { MessageSquare, AlertTriangle, Clock } from 'lucide-react';
-import { NPSBar, ReturnBar } from './ScoreCard';
+import { MessageSquare, Clock, Timer, PhoneCall } from 'lucide-react';
+import { NPSBar } from './ScoreCard';
 import { scoreColorVar } from '../../utils/formatters';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -7,24 +7,22 @@ export default function SurveySection({ data, onOpenComments, onScrollToAlerts }
   const { survey } = data;
 
   const compositeColor = scoreColorVar(survey.compositeAvg, 5);
-  const npsColor = scoreColorVar(survey.npsScore >= 0 ? (survey.npsScore + 100) / 200 * 5 : 0, 5);
-  const returnColor = scoreColorVar(survey.wouldReturnRate / 20, 5);
 
   return (
     <section className="mt-10">
       <div className="flex items-center gap-3 mb-1">
         <h3 className="font-heading text-lg font-bold uppercase tracking-wider" style={{ color: 'var(--text)' }}>
-          Service Feedback
+          Ramp Operations
         </h3>
       </div>
       <p className="font-body text-xs mb-5" style={{ color: 'var(--text-muted)' }}>
-        Based on {survey.sampleSize} survey responses in this period
+        Based on {survey.sampleSize} ticket responses in this period
         {survey.sampleWarning === 'insufficient' && (
           <span className="ml-2 text-[var(--score-amber)]">— Showing last 30 days (insufficient data in selected period)</span>
         )}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Composite Score */}
         <div className="rounded-xl p-5 border relative" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           {survey.sampleWarning === 'low' && (
@@ -69,16 +67,6 @@ export default function SurveySection({ data, onOpenComments, onScrollToAlerts }
           <NPSBar breakdown={survey.npsBreakdown} />
         </div>
 
-        {/* Would Return */}
-        <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="font-heading text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Would Return</p>
-          <p className="font-heading text-3xl font-bold" style={{ color: survey.wouldReturnRate >= 70 ? 'var(--score-green)' : survey.wouldReturnRate >= 40 ? 'var(--score-amber)' : 'var(--score-red)' }}>
-            {survey.wouldReturnRate}%
-          </p>
-          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>would definitely return</p>
-          <ReturnBar breakdown={survey.returnBreakdown} />
-        </div>
-
         {/* Open Flags */}
         <div
           className="rounded-xl p-5 border cursor-pointer hover:border-red-400/40 transition"
@@ -99,6 +87,47 @@ export default function SurveySection({ data, onOpenComments, onScrollToAlerts }
           <p className="font-body text-[10px] mt-1" style={{ color: 'var(--text-muted)' }}>
             {survey.resolvedThisMonth} resolved this month
           </p>
+        </div>
+      </div>
+
+      {/* Second row: Ticket Response Time + Open Tickets + Callbacks */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
+        {/* Ticket Response Time */}
+        <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <Timer className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+            <p className="font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Ticket Response Time</p>
+          </div>
+          <p className="font-heading text-3xl font-bold" style={{ color: survey.ticketResponseTimeAvg <= 24 ? 'var(--score-green)' : survey.ticketResponseTimeAvg <= 48 ? 'var(--score-amber)' : 'var(--score-red)' }}>
+            {survey.ticketResponseTimeAvg} <span className="text-lg font-normal" style={{ color: 'var(--text-muted)' }}>hrs</span>
+          </p>
+          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>avg time to resolution</p>
+          {survey.ticketResponseTimeChange !== null && (
+            <p className={`font-heading text-xs font-semibold mt-2 ${survey.ticketResponseTimeChange <= 0 ? 'text-[var(--score-green)]' : 'text-[var(--score-red)]'}`}>
+              {survey.ticketResponseTimeChange >= 0 ? '+' : ''}{survey.ticketResponseTimeChange}% vs previous
+            </p>
+          )}
+        </div>
+
+        {/* Open Tickets */}
+        <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="font-heading text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Open Tickets</p>
+          <p className={`font-heading text-3xl font-bold ${survey.openTickets > 5 ? 'text-[var(--score-amber)]' : 'text-[var(--score-green)]'}`}>
+            {survey.openTickets}
+          </p>
+          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>awaiting resolution</p>
+        </div>
+
+        {/* Callback Requests */}
+        <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2 mb-2">
+            <PhoneCall className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
+            <p className="font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Callback Requests</p>
+          </div>
+          <p className="font-heading text-3xl font-bold" style={{ color: 'var(--text)' }}>
+            {survey.callbackCount}
+          </p>
+          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>in this period</p>
         </div>
       </div>
     </section>
