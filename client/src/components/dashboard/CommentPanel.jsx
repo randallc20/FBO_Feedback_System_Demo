@@ -1,4 +1,4 @@
-import { X, Flag } from 'lucide-react';
+import { X, Flag, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function CommentPanel({ comments, isOpen, onClose }) {
@@ -21,6 +21,15 @@ export default function CommentPanel({ comments, isOpen, onClose }) {
         </div>
 
         <div className="overflow-y-auto p-4 space-y-3" style={{ height: 'calc(100vh - 72px)' }}>
+          {comments.length === 0 && (
+            <div className="text-center py-16">
+              <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: 'var(--surface2)' }}>
+                <MessageSquare className="w-6 h-6" style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <p className="font-heading text-sm font-semibold" style={{ color: 'var(--text-sub)' }}>No comments yet</p>
+              <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Pilot comments will appear here as they come in</p>
+            </div>
+          )}
           {comments.map((c) => {
             const bg = c.composite >= 4 ? 'var(--score-green-bg)' : c.composite < 3 ? 'var(--score-red-bg)' : 'var(--surface2)';
             return (

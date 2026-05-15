@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flag, Clock, AlertTriangle, Mail, Phone, PhoneCall, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flag, Clock, AlertTriangle, Mail, Phone, PhoneCall, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import ResolveModal from './ResolveModal';
 
@@ -65,6 +65,15 @@ export default function AlertsSection({ data }) {
         {(filter === 'open' ? alerts.open : filter === 'all' ? [...alerts.open, ...alerts.resolved] : []).map((flag) => (
           <FlagCard key={flag.id} flag={flag} patterns={data.alerts.flagPatterns} onResolve={() => setResolveTarget(flag)} />
         ))}
+        {filter === 'open' && alerts.open.length === 0 && (
+          <div className="rounded-xl border p-10 text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+            <div className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ background: 'var(--score-green-bg)' }}>
+              <CheckCircle className="w-6 h-6" style={{ color: 'var(--score-green)' }} />
+            </div>
+            <p className="font-heading text-sm font-bold" style={{ color: 'var(--score-green)' }}>All Clear</p>
+            <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>No open flags — great work by the team</p>
+          </div>
+        )}
       </div>
 
       {/* Resolved section */}
@@ -152,7 +161,7 @@ function FlagCard({ flag, patterns, onResolve }) {
           )}
           {flag.ticketCreatedAt && (
             <span className="font-heading text-[10px] font-semibold px-2 py-1 rounded" style={{ color: 'var(--text-muted)', background: 'var(--surface2)' }}>
-              Ticket: {formatDistanceToNow(new Date(flag.ticketCreatedAt))} ago
+              Visit: {formatDistanceToNow(new Date(flag.ticketCreatedAt))} ago
             </span>
           )}
         </div>

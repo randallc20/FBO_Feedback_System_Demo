@@ -6,6 +6,9 @@ import SurveySection from '../../components/dashboard/SurveySection';
 import ChartsSection from '../../components/dashboard/ChartsSection';
 import AlertsSection from '../../components/dashboard/AlertsSection';
 import CommentPanel from '../../components/dashboard/CommentPanel';
+import AIInsights from '../../components/dashboard/AIInsights';
+import DigestPreview from '../../components/dashboard/DigestPreview';
+import ExportButton from '../../components/dashboard/ExportButton';
 
 export default function DashboardPage() {
   const [period, setPeriod] = useState('month');
@@ -14,11 +17,16 @@ export default function DashboardPage() {
 
   return (
     <>
-      <PeriodSelector value={period} onChange={setPeriod} />
+      <div className="flex items-center justify-between">
+        <PeriodSelector value={period} onChange={setPeriod} />
+        <ExportButton data={data} />
+      </div>
       <SurveySection data={data} onOpenComments={() => setCommentsOpen(true)} onScrollToAlerts={() => document.getElementById('alerts-section')?.scrollIntoView({ behavior: 'smooth' })} />
+      <AIInsights data={data} />
       <FuelSection data={data} />
       <ChartsSection data={data} />
       <AlertsSection data={data} />
+      <DigestPreview data={data} />
 
       {/* Floating comment button */}
       <button

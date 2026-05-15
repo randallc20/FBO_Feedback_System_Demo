@@ -12,7 +12,7 @@ export default function FBOLayout() {
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
       <div className={`transition-all duration-200 ${collapsed ? 'ml-16' : 'ml-60'}`}>
-        <TopBar flagCount={data.survey.openFlagCount} />
+        <TopBar flagCount={data.survey.openFlagCount} recentFlags={data.alerts.open} />
         <main className="p-6 max-w-[1400px] mx-auto">
           <Outlet />
         </main>

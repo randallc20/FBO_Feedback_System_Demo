@@ -19,7 +19,7 @@ export default function OperationsConfig() {
             Operations Config
           </h3>
           <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            {ticketQuestions.length} ticket questions &middot; All locked (admin only)
+            {ticketQuestions.length} service close-out questions &middot; All locked (admin only)
           </p>
         </div>
         <button
@@ -27,7 +27,7 @@ export default function OperationsConfig() {
           className="flex items-center gap-2 px-4 py-2 rounded-lg font-heading font-semibold text-sm transition hover:bg-[var(--surface2)]"
           style={{ color: 'var(--text-sub)', border: '1px solid var(--border)' }}
         >
-          <Eye className="w-4 h-4" /> Preview Ticket
+          <Eye className="w-4 h-4" /> Preview Close-Out
         </button>
       </div>
 
@@ -35,9 +35,9 @@ export default function OperationsConfig() {
       <div className="rounded-xl p-4 mb-6 flex items-start gap-3" style={{ background: 'color-mix(in srgb, var(--score-amber) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--score-amber) 30%, transparent)' }}>
         <Settings className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--score-amber)' }} />
         <div>
-          <p className="font-heading text-sm font-semibold" style={{ color: 'var(--text)' }}>Fixed Ticket Format</p>
+          <p className="font-heading text-sm font-semibold" style={{ color: 'var(--text)' }}>Service Close-Out Format</p>
           <p className="font-body text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            Each pilot ticket includes 3 star-rating questions plus an optional callback request. These questions are standardized across all FBOs in the network and cannot be modified.
+            Each visit close-out includes 3 star-rating questions plus an optional follow-up request. These questions are standardized across all FBOs in the network and cannot be modified.
           </p>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function OperationsConfig() {
   );
 }
 
-/* Preview Modal — Shows the simplified ticket UI */
+/* Preview Modal — Shows the service close-out UI */
 const DEVICES = [
   { key: 'iphone', label: 'iPhone', icon: Smartphone, width: 375, frame: 'rounded-[2.5rem] border-[6px]' },
   { key: 'ipad', label: 'iPad', icon: Tablet, width: 768, frame: 'rounded-[1.5rem] border-[5px]' },
@@ -178,7 +178,7 @@ function PreviewModal({ mode, onModeChange, onClose }) {
                 allRated ? 'bg-[#C9A84C] text-[#0A1628]' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Submit Ticket
+              Complete Visit
             </button>
           </div>
 

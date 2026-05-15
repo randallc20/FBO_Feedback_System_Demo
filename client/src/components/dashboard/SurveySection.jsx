@@ -16,7 +16,7 @@ export default function SurveySection({ data, onOpenComments, onScrollToAlerts }
         </h3>
       </div>
       <p className="font-body text-xs mb-5" style={{ color: 'var(--text-muted)' }}>
-        Based on {survey.sampleSize} ticket responses in this period
+        Based on {survey.sampleSize} visits in this period
         {survey.sampleWarning === 'insufficient' && (
           <span className="ml-2 text-[var(--score-amber)]">— Showing last 30 days (insufficient data in selected period)</span>
         )}
@@ -90,18 +90,18 @@ export default function SurveySection({ data, onOpenComments, onScrollToAlerts }
         </div>
       </div>
 
-      {/* Second row: Ticket Response Time + Open Tickets + Callbacks */}
+      {/* Second row: Follow-up Time + Pending Follow-ups + Follow-up Requests */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-        {/* Ticket Response Time */}
+        {/* Follow-up Time */}
         <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2 mb-2">
             <Timer className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-            <p className="font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Ticket Response Time</p>
+            <p className="font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Follow-up Time</p>
           </div>
           <p className="font-heading text-3xl font-bold" style={{ color: survey.ticketResponseTimeAvg <= 24 ? 'var(--score-green)' : survey.ticketResponseTimeAvg <= 48 ? 'var(--score-amber)' : 'var(--score-red)' }}>
             {survey.ticketResponseTimeAvg} <span className="text-lg font-normal" style={{ color: 'var(--text-muted)' }}>hrs</span>
           </p>
-          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>avg time to resolution</p>
+          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>avg time to follow-up</p>
           {survey.ticketResponseTimeChange !== null && (
             <p className={`font-heading text-xs font-semibold mt-2 ${survey.ticketResponseTimeChange <= 0 ? 'text-[var(--score-green)]' : 'text-[var(--score-red)]'}`}>
               {survey.ticketResponseTimeChange >= 0 ? '+' : ''}{survey.ticketResponseTimeChange}% vs previous
@@ -109,20 +109,20 @@ export default function SurveySection({ data, onOpenComments, onScrollToAlerts }
           )}
         </div>
 
-        {/* Open Tickets */}
+        {/* Pending Follow-ups */}
         <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="font-heading text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Open Tickets</p>
+          <p className="font-heading text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>Pending Follow-ups</p>
           <p className={`font-heading text-3xl font-bold ${survey.openTickets > 5 ? 'text-[var(--score-amber)]' : 'text-[var(--score-green)]'}`}>
             {survey.openTickets}
           </p>
-          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>awaiting resolution</p>
+          <p className="font-body text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>awaiting follow-up</p>
         </div>
 
-        {/* Callback Requests */}
+        {/* Follow-up Requests */}
         <div className="rounded-xl p-5 border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2 mb-2">
             <PhoneCall className="w-4 h-4" style={{ color: 'var(--text-muted)' }} />
-            <p className="font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Callback Requests</p>
+            <p className="font-heading text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Follow-up Requests</p>
           </div>
           <p className="font-heading text-3xl font-bold" style={{ color: 'var(--text)' }}>
             {survey.callbackCount}

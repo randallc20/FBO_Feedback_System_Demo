@@ -19,7 +19,7 @@ export default function MetricCard({ title, value, unit, change, sparkData, spar
       className={`rounded-xl p-5 border transition-colors relative group ${onClick ? 'cursor-pointer hover:border-gold/40' : ''}`}
       style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}
     >
-      {/* Badge (ticket count bubble) */}
+      {/* Badge (visit count bubble) */}
       {badge !== undefined && (
         <div className="absolute top-3 right-3 group/badge">
           <div className="w-7 h-7 rounded-full bg-gold/10 flex items-center justify-center">

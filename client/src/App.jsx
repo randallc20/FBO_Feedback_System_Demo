@@ -6,6 +6,7 @@ import PilotFlow from './pages/pilot/PilotFlow';
 import FBOLayout from './pages/fbo/FBOLayout';
 import DashboardPage from './pages/fbo/DashboardPage';
 import SurveyBuilderPage from './pages/fbo/SurveyBuilderPage';
+import FleetPage from './pages/fbo/FleetPage';
 
 export default function App() {
   const { user, isAuthenticated } = useAuth();
@@ -20,6 +21,7 @@ export default function App() {
       <Route element={<FBOLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/survey-builder" element={<SurveyBuilderPage />} />
+        <Route path="/fleet" element={<FleetPage />} />
         <Route path="/pilot" element={<PilotPreview />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

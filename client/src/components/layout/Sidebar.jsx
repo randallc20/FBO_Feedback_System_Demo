@@ -1,15 +1,30 @@
+import { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Wrench, Smartphone, LogOut } from 'lucide-react';
+import { LayoutDashboard, Wrench, Smartphone, Plane, LogOut, ChevronDown, MapPin } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { fbos } from '../../data/fbos';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/fleet', label: 'Fleet Intelligence', icon: Plane },
   { to: '/survey-builder', label: 'Operations Config', icon: Wrench },
   { to: '/pilot', label: 'Pilot Preview', icon: Smartphone },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuth();
+  const [fboOpen, setFboOpen] = useState(false);
+  const [selectedFbo, setSelectedFbo] = useState(fbos[0]);
+  const fboRef = useRef(null);
+
+  useEffect(() => {
+    if (!fboOpen) return;
+    const handler = (e) => {
+      if (fboRef.current && !fboRef.current.contains(e.target)) setFboOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [fboOpen]);
 
   return (
     <aside
@@ -26,9 +41,6 @@ export default function Sidebar({ collapsed, onToggle }) {
               <span className="text-white">FLIGHT</span>
               <span className="text-gold">SHEET</span>
             </h1>
-            <p className="font-body text-[10px] text-gray-500 truncate mt-0.5">
-              {user?.fbo?.name || 'Jet Aviation'} — {user?.fbo?.icaoCode || 'KDAL'}
-            </p>
           </div>
         )}
         <button onClick={onToggle} className="text-gray-500 hover:text-white transition p-1">
@@ -37,6 +49,51 @@ export default function Sidebar({ collapsed, onToggle }) {
           </svg>
         </button>
       </div>
+
+      {/* FBO Switcher */}
+      {!collapsed && (
+        <div className="px-3 py-3 border-b border-white/10 relative" ref={fboRef}>
+          <button
+            onClick={() => setFboOpen((o) => !o)}
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-white/5 transition"
+          >
+            <MapPin className="w-4 h-4 text-gold flex-shrink-0" />
+            <div className="flex-1 min-w-0 text-left">
+              <p className="font-heading text-xs font-semibold text-white truncate">{selectedFbo.name}</p>
+              <p className="font-body text-[10px] text-gray-500 truncate">{selectedFbo.icaoCode} &middot; {selectedFbo.city}, {selectedFbo.state}</p>
+            </div>
+            <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition ${fboOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {fboOpen && (
+            <div className="absolute left-3 right-3 top-full mt-1 rounded-xl shadow-2xl border border-white/10 overflow-hidden z-50" style={{ background: '#0F1D32' }}>
+              {fbos.map((fbo) => (
+                <button
+                  key={fbo.id}
+                  onClick={() => { setSelectedFbo(fbo); setFboOpen(false); }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-white/5 transition ${
+                    selectedFbo.id === fbo.id ? 'bg-gold/10' : ''
+                  }`}
+                >
+                  <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${selectedFbo.id === fbo.id ? 'text-gold' : 'text-gray-600'}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-heading text-xs font-semibold truncate ${selectedFbo.id === fbo.id ? 'text-gold' : 'text-gray-300'}`}>{fbo.name}</p>
+                    <p className="font-body text-[10px] text-gray-500 truncate">{fbo.icaoCode} &middot; {fbo.city}, {fbo.state}</p>
+                  </div>
+                  {selectedFbo.id === fbo.id && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-gold flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+              <div className="px-3 py-2 border-t border-white/10">
+                <p className="font-body text-[9px] text-gray-600 text-center">
+                  Switching FBOs loads demo data for that location
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 py-4 space-y-1 px-2">
