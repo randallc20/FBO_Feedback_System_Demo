@@ -68,7 +68,7 @@ export default function ReceiptReview({ data, pilotName, aircraftInfo, companyNa
         onClick={onConfirm}
         className="mt-6 w-full py-5 bg-gold text-navy font-heading font-bold text-lg rounded-xl hover:bg-yellow-500 active:scale-[0.98] transition-all shadow-lg shadow-gold/20"
       >
-        Confirm & Rate Experience
+        Continue
       </button>
     </div>
   );

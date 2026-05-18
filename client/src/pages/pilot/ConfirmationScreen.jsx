@@ -36,8 +36,8 @@ export default function ConfirmationScreen({ pilotName, tailNumber, fboName, ica
         </div>
       </div>
 
-      <h2 className="font-heading text-2xl font-bold text-white text-center mb-1">Feedback Submitted</h2>
-      <p className="font-body text-sm text-gray-400 text-center mb-6">Thank you for your input</p>
+      <h2 className="font-heading text-2xl font-bold text-white text-center mb-1">Visit Complete</h2>
+      <p className="font-body text-sm text-gray-400 text-center mb-6">Your feedback has been recorded</p>
 
       {/* Summary Card */}
       <div className="bg-dark-surface rounded-2xl border border-gray-700/50 overflow-hidden">
@@ -56,16 +56,30 @@ export default function ConfirmationScreen({ pilotName, tailNumber, fboName, ica
 
         <div className="px-5 py-3">
           <ScoreBadge label="Turn Performance" score={turnScore} color="text-gold" />
-          <ScoreBadge label="Service Experience" score={serviceScore} color="text-blue" />
-          <ScoreBadge label="Communication" score={commScore} color="text-teal" />
+          <ScoreBadge label="Service Experience" score={serviceScore} color="text-gold" />
+          <ScoreBadge label="Communication" score={commScore} color="text-gold" />
           {wantsCallback && (
             <div className="flex items-center gap-2 py-2 border-t border-gray-700/30 mt-1 pt-3">
               <svg className="w-4 h-4 text-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <span className="font-body text-sm text-blue">Callback requested</span>
+              <span className="font-body text-sm text-blue">Follow-up requested</span>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Operations Rep Card */}
+      <div className="mt-4 bg-dark-surface rounded-2xl border border-gray-700/50 px-5 py-4">
+        <p className="font-heading text-[10px] text-gray-500 uppercase tracking-wider mb-3">Your Operations Rep</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center">
+            <span className="font-heading text-sm font-bold text-gold">SJ</span>
+          </div>
+          <div>
+            <p className="font-heading text-sm font-semibold text-white">Stuart Johnsey</p>
+            <p className="font-body text-xs text-gray-400">Operations Rep &middot; {fboName}</p>
+          </div>
         </div>
       </div>
 
@@ -109,7 +123,7 @@ export default function ConfirmationScreen({ pilotName, tailNumber, fboName, ica
           onClick={onRestart}
           className="flex-1 py-4 bg-dark-surface border border-gray-600 text-white font-heading font-bold rounded-xl hover:border-gray-400 transition-all"
         >
-          View History
+          Done
         </button>
       </div>
     </div>

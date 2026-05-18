@@ -6,34 +6,36 @@ import { fbos } from '../../data/fbos';
 import { ticketQuestions } from '../../data/surveys';
 import { generateMockData } from '../../data/generateResponses';
 import { scanReceipt } from '../../api/receiptScanner';
-import HomeScreen from './HomeScreen';
 import ReceiptUpload from './ReceiptUpload';
 import AIProcessing from './AIProcessing';
 import ReceiptReview from './ReceiptReview';
 import ConfirmationScreen from './ConfirmationScreen';
 
 const starLabels = ['Poor', 'Below Average', 'Average', 'Good', 'Excellent'];
-const metricColors = {
-  TURN_PERFORMANCE: { label: 'Turn Performance', text: 'text-blue' },
-  SERVICE_EXPERIENCE: { label: 'Service Experience', text: 'text-gold' },
-  COMMUNICATION: { label: 'Communication', text: 'text-teal' },
+const metricLabels = {
+  TURN_PERFORMANCE: 'Turn Performance',
+  SERVICE_EXPERIENCE: 'Service Experience',
+  COMMUNICATION: 'Communication',
 };
 
-function TicketScreen({ scores, onScoreChange, wantsCallback, onCallbackChange, onSubmit }) {
+function RateScreen({ scores, onScoreChange, wantsCallback, onCallbackChange, onSubmit, fboName }) {
   const allRated = ticketQuestions.every((q) => scores[q.id]);
 
   return (
     <div className="min-h-screen flex flex-col px-6 pt-14 pb-8">
-      <h2 className="font-heading text-2xl font-bold text-white text-center mb-2">Rate Your Experience</h2>
-      <p className="font-body text-sm text-gray-400 text-center mb-8">Tap stars to rate each area</p>
+      <h2 className="font-heading text-2xl font-bold text-white text-center mb-1">Rate Your Visit</h2>
+      <p className="font-body text-sm text-gray-400 text-center mb-8">
+        How was your experience at {fboName || 'this FBO'}?
+      </p>
 
-      <div className="flex-1 flex flex-col gap-6">
+      <div className="flex-1 flex flex-col gap-5">
         {ticketQuestions.map((q) => {
-          const mc = metricColors[q.metric];
           const value = scores[q.id] || 0;
           return (
             <div key={q.id} className="bg-dark-surface rounded-2xl border border-gray-700/50 p-5">
-              <p className={`font-heading text-xs font-semibold uppercase tracking-wider mb-1 ${mc.text}`}>{mc.label}</p>
+              <p className="font-heading text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                {metricLabels[q.metric]}
+              </p>
               <p className="font-body text-sm text-gray-300 mb-4">{q.questionText}</p>
               <div className="flex items-center gap-3 justify-center">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -55,34 +57,38 @@ function TicketScreen({ scores, onScoreChange, wantsCallback, onCallbackChange, 
             </div>
           );
         })}
+      </div>
 
-        {/* Callback toggle */}
+      {/* Request Follow-up — distinct from submit */}
+      <div className="mt-6 mb-4">
         <button
           onClick={() => onCallbackChange(!wantsCallback)}
-          className={`flex items-center gap-3 rounded-2xl border p-4 transition-all ${
-            wantsCallback ? 'bg-gold/10 border-gold/40' : 'bg-dark-surface border-gray-700/50'
+          className={`w-full flex items-center justify-center gap-3 rounded-xl border-2 py-4 transition-all ${
+            wantsCallback
+              ? 'border-gold bg-gold/10'
+              : 'border-gray-600 bg-dark-surface hover:border-gray-400'
           }`}
         >
-          <div className={`w-10 h-6 rounded-full transition-colors flex items-center ${wantsCallback ? 'bg-gold justify-end' : 'bg-gray-600 justify-start'}`}>
-            <div className="w-5 h-5 bg-white rounded-full mx-0.5 shadow" />
-          </div>
-          <div className="text-left">
-            <p className="font-heading text-sm font-semibold text-white">Request a callback</p>
-            <p className="font-body text-xs text-gray-400">We'll reach out to discuss your experience</p>
-          </div>
+          <svg className={`w-5 h-5 ${wantsCallback ? 'text-gold' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+          <span className={`font-heading text-sm font-semibold ${wantsCallback ? 'text-gold' : 'text-white'}`}>
+            {wantsCallback ? 'Follow-up Requested' : 'Request a Follow-up'}
+          </span>
         </button>
       </div>
 
+      {/* Submit */}
       <button
         onClick={onSubmit}
         disabled={!allRated}
-        className={`mt-6 w-full py-5 font-heading font-bold text-lg rounded-xl transition-all ${
+        className={`w-full py-5 font-heading font-bold text-lg rounded-xl transition-all ${
           allRated
             ? 'bg-gold text-navy hover:bg-yellow-500 active:scale-[0.98] shadow-lg shadow-gold/20'
             : 'bg-gray-700 text-gray-500 cursor-not-allowed'
         }`}
       >
-        Submit Ticket
+        Submit
       </button>
     </div>
   );
@@ -103,8 +109,8 @@ export default function PilotFlow() {
   const ac = aircraft.find((a) => a.id === user.defaultAircraftId);
   const company = managementCompanies.find((c) => c.id === user.companyId);
 
-  // Steps: 0=Home, 1=Upload, 2=AI, 3=Review, 4=Ticket, 5=Confirmation
-  const totalSteps = 6;
+  // Steps: 0=Upload, 1=AI, 2=Review, 3=Rate, 4=Confirmation
+  const totalSteps = 5;
 
   const goNext = () => { setDirection(1); setStep((s) => s + 1); };
   const goBack = () => { setDirection(-1); setStep((s) => Math.max(0, s - 1)); };
@@ -171,24 +177,22 @@ export default function PilotFlow() {
       )}
 
       <div key={step} className="animate-slideIn" style={{ '--slide-from': direction > 0 ? '60px' : '-60px' }}>
-        {step === 0 && (
-          <HomeScreen user={user} aircraft={ac} company={company} recentPurchases={pilotPurchases.slice(0, 5)} lifetimeSavings={lifetimeSavings} onStart={goNext} />
-        )}
-        {step === 1 && <ReceiptUpload onUpload={handleUpload} />}
-        {step === 2 && <AIProcessing onComplete={handleScanComplete} scanPromise={scanPromise} />}
-        {step === 3 && (
+        {step === 0 && <ReceiptUpload onUpload={handleUpload} />}
+        {step === 1 && <AIProcessing onComplete={handleScanComplete} scanPromise={scanPromise} />}
+        {step === 2 && (
           <ReceiptReview data={activeReceipt} pilotName={`${user.firstName} ${user.lastName}`} aircraftInfo={ac ? `${ac.make} ${ac.model}` : ''} companyName={company?.name || ''} flightsheetPrice={flightsheetPrice} retailPrice={retailPrice} onConfirm={goNext} />
         )}
-        {step === 4 && (
-          <TicketScreen
+        {step === 3 && (
+          <RateScreen
             scores={ticketScores}
             onScoreChange={(id, val) => setTicketScores((prev) => ({ ...prev, [id]: val }))}
             wantsCallback={wantsCallback}
             onCallbackChange={setWantsCallback}
             onSubmit={goNext}
+            fboName={activeReceipt.fbo_name}
           />
         )}
-        {step === 5 && (
+        {step === 4 && (
           <ConfirmationScreen
             pilotName={`${user.firstName} ${user.lastName}`}
             tailNumber={ac?.tailNumber || ''}
