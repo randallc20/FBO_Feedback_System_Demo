@@ -15,6 +15,15 @@ export default function App() {
     return <LoginPage />;
   }
 
+  // Pilot role gets the full-screen pilot flow
+  if (user.role === 'PILOT') {
+    return (
+      <div className="bg-navy min-h-screen">
+        <PilotFlow />
+      </div>
+    );
+  }
+
   // FBO role uses sidebar layout with routes
   return (
     <Routes>

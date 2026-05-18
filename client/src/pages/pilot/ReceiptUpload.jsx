@@ -1,6 +1,12 @@
 import { useRef, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { aircraft } from '../../data/aircraft';
+import { managementCompanies } from '../../data/companies';
 
 export default function ReceiptUpload({ onUpload }) {
+  const { user } = useAuth();
+  const ac = aircraft.find((a) => a.id === user.defaultAircraftId);
+  const company = managementCompanies.find((c) => c.id === user.companyId);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const [preview, setPreview] = useState(null);
@@ -38,11 +44,11 @@ export default function ReceiptUpload({ onUpload }) {
       {/* Pilot identity reminder */}
       <div className="bg-dark-surface rounded-lg p-3 flex items-center gap-3 mb-8 border border-gray-700/30">
         <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
-          <span className="font-heading text-xs font-bold text-gold">JW</span>
+          <span className="font-heading text-xs font-bold text-gold">{user.initials}</span>
         </div>
         <div>
-          <p className="font-heading text-sm font-semibold text-white">James Whitfield</p>
-          <p className="font-body text-xs text-gray-400">N401HA &middot; Harco Aviation</p>
+          <p className="font-heading text-sm font-semibold text-white">{user.firstName} {user.lastName}</p>
+          <p className="font-body text-xs text-gray-400">{ac?.tailNumber || ''} &middot; {company?.name || ''}</p>
         </div>
         <span className="ml-auto text-xs font-heading text-gold bg-gold/10 px-2 py-0.5 rounded">Verified</span>
       </div>
