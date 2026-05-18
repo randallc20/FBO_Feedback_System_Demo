@@ -140,9 +140,9 @@ export default function PilotFlow() {
 
   const progress = step / (totalSteps - 1);
 
-  const handleUpload = (file) => {
-    const promise = scanReceipt(file).then((data) => data.receipt);
-    setScanPromise(promise);
+  const handleUpload = () => {
+    // Skip real API call for demo — go straight to fake progress
+    setScanPromise(null);
     goNext();
   };
 

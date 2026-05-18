@@ -47,19 +47,19 @@ export default function AIProcessing({ onComplete, scanPromise }) {
       return () => clearInterval(interval);
     }
 
-    // Fallback: fake progress animation (no real scan)
+    // Fake progress animation for demo
     const interval = setInterval(() => {
       setProgress((p) => {
-        const next = p + 2;
+        const next = p + 4;
         const stage = stages.find((s) => s.at <= next && s.at > p);
         if (stage) setStatusText(stage.text);
         if (next >= 100) {
           clearInterval(interval);
-          setTimeout(() => onComplete(null), 500);
+          setTimeout(() => onComplete(null), 300);
         }
         return Math.min(next, 100);
       });
-    }, 50);
+    }, 40);
 
     return () => clearInterval(interval);
   }, [onComplete, scanPromise]);
